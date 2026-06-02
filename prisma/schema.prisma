@@ -1,0 +1,133 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Debtor {
+  id            String    @id @default(cuid())
+  accountNumber String    @unique
+  name          String
+  email         String?
+  phone         String?
+  address       String?
+  city          String?
+  state         String?
+  zip           String?
+  type          String
+  balance       Float     @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  invoices      Invoice[]
+  cases         Case[]
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  debtorId    String
+  debtor      Debtor   @relation(fields: [debtorId], references: [id])
+  invoiceNum  String
+  amount      Float
+  status      String
+  dueDate     DateTime
+  serviceDate DateTime
+  description String?
+  agingBucket String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Case {
+  id              String       @id @default(cuid())
+  caseNumber      String       @unique
+  debtorId        String
+  debtor          Debtor       @relation(fields: [debtorId], references: [id])
+  claimAmount     Float
+  courtFees       Float        @default(0)
+  costsAccrued    Float        @default(0)
+  status          String
+  venueCounty     String
+  courtName       String
+  hearingDate     DateTime?
+  filingDate      DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  timeline        CaseEvent[]
+  documents       Document[]
+  judgment        Judgment?
+}
+
+model CaseEvent {
+  id           String   @id @default(cuid())
+  caseId       String
+  case         Case     @relation(fields: [caseId], references: [id])
+  eventType    String
+  description  String
+  timestamp    DateTime
+  completed    Boolean  @default(false)
+  reminderSent Boolean @default(false)
+  createdAt    DateTime @default(now())
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id])
+  formType  String
+  fileName  String
+  status    String
+  createdAt DateTime @default(now())
+  filedAt   DateTime?
+  notes     String?
+}
+
+model Judgment {
+  id                String   @id @default(cuid())
+  caseId            String   @unique
+  case              Case     @relation(fields: [caseId], references: [id])
+  amount            Float
+  dateEntered       DateTime
+  balanceRemaining  Float
+  paymentStatus     String
+  lastPaymentDate   DateTime?
+  lastPaymentAmount Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Settings {
+  id                   String  @id @default("default")
+  businessName         String
+  businessAddress      String
+  businessPhone        String
+  businessEmail        String
+  defaultVenueCounty   String
+  defaultCourt         String
+  senderName           String
+  senderAddress        String
+  demandLetterTemplate String
+  signatureName        String
+  signatureTitle       String
+  emailNotifications   Boolean @default(true)
+  deadlineReminders    Boolean @default(true)
+  reminderDaysBefore   Int     @default(3)
+  caseUpdates          Boolean @default(true)
+  weeklyDigest         Boolean @default(false)
+  updatedAt            DateTime @updatedAt
+}

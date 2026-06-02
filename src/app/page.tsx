@@ -2,6 +2,7 @@
 
 import { colors, spacing, shadows } from '@/lib/design-tokens'
 import { getDashboardMetrics, getUpcomingDeadlines, getActionsRequired, getCasesPipeline } from '@/lib/api'
+import type { DashboardMetrics, DeadlineItem, ActionRequired, PipelineColumn } from '@/lib/api'
 import { useEffect, useState } from 'react'
 
 interface MetricCardProps {
@@ -326,21 +327,23 @@ function PipelineKanban({ columns }: { columns: { status: string; label: string;
 }
 
 export default function DashboardPage() {
-  const [metrics, setMetrics] = useState({ current: 0, thirty: 0, sixty: 0, ninety: 0 })
-  const [deadlines, setDeadlines] = useState<any[]>([])
-  const [actions, setActions] = useState<any[]>([])
-  const [pipeline, setPipeline] = useState<any[]>([])
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
+  const [deadlines, setDeadlines] = useState<DeadlineItem[]>([])
+  const [actions, setActions] = useState<ActionRequired[]>([])
+  const [pipeline, setPipeline] = useState<PipelineColumn[]>([])
 
   useEffect(() => {
-    getDashboardMetrics().then(m => {
-      setMetrics({ current: m.currentAR, thirty: m.thirtyDayAR, sixty: m.sixtyDayAR, ninety: m.ninetyPlusAR })
-    })
+    getDashboardMetrics().then(setMetrics)
     getUpcomingDeadlines().then(setDeadlines)
     getActionsRequired().then(setActions)
     getCasesPipeline().then(setPipeline)
   }, [])
 
-  const totalAR = metrics.current + metrics.thirty + metrics.sixty + metrics.ninety
+  if (!metrics) {
+    return <main className="dashboard"><p>Loading...</p></main>
+  }
+
+  const totalAR = metrics.currentAR + metrics.thirtyDayAR + metrics.sixtyDayAR + metrics.ninetyPlusAR
 
   return (
     <main className="dashboard">
@@ -353,10 +356,10 @@ export default function DashboardPage() {
       </header>
 
       <section className="metrics-section">
-        <MetricCard label="Total A/R" amount={totalAR} caseCount={18} />
-        <MetricCard label="30-Day" amount={metrics.thirty} caseCount={7} color={colors.primary} />
-        <MetricCard label="60-Day" amount={metrics.sixty} caseCount={6} color={colors.warning} />
-        <MetricCard label="90+ Day" amount={metrics.ninety} caseCount={0} color={colors.danger} />
+        <MetricCard label="Total A/R" amount={totalAR} caseCount={metrics.totalCases} />
+        <MetricCard label="30-Day" amount={metrics.thirtyDayAR} caseCount={metrics.thirtyDayCases} color={colors.primary} />
+        <MetricCard label="60-Day" amount={metrics.sixtyDayAR} caseCount={metrics.sixtyDayCases} color={colors.warning} />
+        <MetricCard label="90+ Day" amount={metrics.ninetyPlusAR} caseCount={metrics.ninetyPlusCases} color={colors.danger} />
       </section>
 
       <section className="aging-section">

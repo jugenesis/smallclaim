@@ -34,3 +34,9 @@ npm-debug.log*
 # Session files
 *.session
 session-state/
+/src/generated/prisma
+/prisma/dev.db
+/.next/cache/
+/.next/server/
+/.next/static/
+/.next/types/

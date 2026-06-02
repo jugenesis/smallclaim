@@ -1,103 +1,124 @@
-import { DashboardMetrics, DeadlineItem, ActionRequired, CaseStatus } from '@/types'
+import { prisma } from '@/lib/db'
+import { getARSummary } from './debtors-api'
+import { getCasesSummary } from './cases-api'
 
-// Placeholder data - will be replaced with actual database/API calls
-const PLACEHOLDER_METRICS: DashboardMetrics = {
-  totalAR: 47230,
-  totalCases: 18,
-  currentAR: 12400,
-  currentCases: 5,
-  thirtyDayAR: 18650,
-  thirtyDayCases: 7,
-  sixtyDayAR: 16180,
-  sixtyDayCases: 6,
-  ninetyPlusAR: 0,
-  ninetyPlusCases: 0,
+export interface DashboardMetrics {
+  totalAR: number; totalCases: number
+  currentAR: number; currentCases: number
+  thirtyDayAR: number; thirtyDayCases: number
+  sixtyDayAR: number; sixtyDayCases: number
+  ninetyPlusAR: number; ninetyPlusCases: number
 }
 
-const PLACEHOLDER_DEADLINES: DeadlineItem[] = [
-  {
-    id: '1',
-    caseId: '1',
-    caseNumber: '2024-042',
-    eventType: 'SC-104 Filing',
-    deadline: new Date('2024-06-15'),
-    daysRemaining: 2,
-    urgency: 'danger',
-    debtorName: 'Dr. Sarah Kim',
-  },
-  {
-    id: '2',
-    caseId: '2',
-    caseNumber: '2024-043',
-    eventType: 'Court Hearing',
-    deadline: new Date('2024-06-18'),
-    daysRemaining: 5,
-    urgency: 'warning',
-    debtorName: 'Dr. Michael Chen',
-  },
-  {
-    id: '3',
-    caseId: '3',
-    caseNumber: '2024-044',
-    eventType: 'Service Deadline',
-    deadline: new Date('2024-06-22'),
-    daysRemaining: 9,
-    urgency: 'normal',
-    debtorName: 'Bright Smile Dental',
-  },
-]
+export interface DeadlineItem {
+  id: string; caseId: string; caseNumber: string; eventType: string
+  deadline: Date; daysRemaining: number; urgency: 'danger' | 'warning' | 'normal'
+  debtorName: string
+}
 
-const PLACEHOLDER_ACTIONS: ActionRequired[] = [
-  {
-    id: '1',
-    caseId: '1',
-    caseNumber: '2024-042',
-    actionType: 'service',
-    description: 'Service due in 2 days',
-    amount: 3200,
-    deadline: new Date('2024-06-15'),
-  },
-  {
-    id: '2',
-    caseId: '4',
-    caseNumber: '2024-045',
-    actionType: 'demand-response',
-    description: 'Demand letter overdue (30+ days)',
-    amount: 5100,
-  },
-]
+export interface ActionRequired {
+  id: string; caseId: string; caseNumber: string; actionType: string
+  description: string; amount: number; deadline?: Date
+}
 
 export interface PipelineColumn {
-  status: CaseStatus
-  label: string
-  count: number
+  status: string; label: string; count: number
   cases: { id: string; debtor: string; amount: number; deadline: string }[]
 }
 
-const PLACEHOLDER_PIPELINE: PipelineColumn[] = [
-  { status: 'demand', label: 'Demand', count: 4, cases: [] },
-  { status: 'filed', label: 'Filed', count: 2, cases: [] },
-  { status: 'served', label: 'Served', count: 3, cases: [] },
-  { status: 'hearing', label: 'Hearing', count: 1, cases: [] },
-  { status: 'judgment', label: 'Judgment', count: 2, cases: [] },
-]
-
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  // TODO: Replace with actual API call
-  return PLACEHOLDER_METRICS
+  const [ar, cases] = await Promise.all([
+    getARSummary(),
+    getCasesSummary()
+  ])
+
+  // For now, distribute cases proportionally (placeholder - real impl would track aging per case)
+  const total = cases.total || 1
+  const thirtyCases = Math.round(total * 0.4)
+  const sixtyCases = Math.round(total * 0.3)
+  const currentCases = total - thirtyCases - sixtyCases
+
+  return {
+    totalAR: ar.total,
+    totalCases: cases.total,
+    currentAR: ar.current,
+    currentCases,
+    thirtyDayAR: ar.thirtyDay,
+    thirtyDayCases: thirtyCases,
+    sixtyDayAR: ar.sixtyDay,
+    sixtyDayCases: sixtyCases,
+    ninetyPlusAR: ar.ninetyPlus,
+    ninetyPlusCases: 0,
+  }
 }
 
 export async function getUpcomingDeadlines(limit = 10): Promise<DeadlineItem[]> {
-  // TODO: Replace with actual API call
-  return PLACEHOLDER_DEADLINES
+  const events = await prisma.caseEvent.findMany({
+    where: { completed: false, timestamp: { gte: new Date() } },
+    include: { case: { include: { debtor: { select: { name: true } } } } },
+    orderBy: { timestamp: 'asc' },
+    take: limit,
+  })
+
+  const now = new Date()
+  return events.map(e => {
+    const daysRemaining = Math.ceil((e.timestamp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    let urgency: 'danger' | 'warning' | 'normal' = 'normal'
+    if (daysRemaining < 3) urgency = 'danger'
+    else if (daysRemaining < 7) urgency = 'warning'
+
+    return {
+      id: e.id,
+      caseId: e.caseId,
+      caseNumber: e.case.caseNumber,
+      eventType: e.eventType,
+      deadline: e.timestamp,
+      daysRemaining,
+      urgency,
+      debtorName: e.case.debtor.name,
+    }
+  })
 }
 
 export async function getActionsRequired(): Promise<ActionRequired[]> {
-  // TODO: Replace with actual API call
-  return PLACEHOLDER_ACTIONS
+  // Get incomplete events that are past due
+  const pastDueEvents = await prisma.caseEvent.findMany({
+    where: { completed: false, timestamp: { lt: new Date() } },
+    include: { case: { include: { debtor: { select: { name: true } } } } },
+    orderBy: { timestamp: 'asc' },
+  })
+
+  return pastDueEvents.map(e => ({
+    id: e.id,
+    caseId: e.caseId,
+    caseNumber: e.case.caseNumber,
+    actionType: e.eventType,
+    description: `${e.eventType.replace(/_/g, ' ')} overdue`,
+    amount: e.case.claimAmount,
+    deadline: e.timestamp,
+  }))
 }
 
 export async function getCasesPipeline(): Promise<PipelineColumn[]> {
-  // TODO: Replace with actual API call
-  return PLACEHOLDER_PIPELINE
+  const cases = await prisma.case.groupBy({
+    by: ['status'],
+    _count: { id: true },
+  })
+
+  const statusLabels: Record<string, string> = {
+    demand: 'Demand',
+    filed: 'Filed',
+    served: 'Served',
+    hearing: 'Hearing',
+    judgment: 'Judgment',
+    collected: 'Collected',
+    closed: 'Closed',
+  }
+
+  return cases.map(c => ({
+    status: c.status,
+    label: statusLabels[c.status] || c.status,
+    count: c._count.id,
+    cases: [],
+  }))
 }
