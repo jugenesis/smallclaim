@@ -17,14 +17,13 @@
       "static/chunks/448-764a0311ac16abc8.js",
       "static/chunks/app/layout-34c35fc52d40c862.js"
     ],
-    "/cases/[id]/page": [
+    "/calendar/page": [
       "static/chunks/webpack-1a9f5f0b6ec9894f.js",
       "static/chunks/fd9d1056-9f91b5e418130764.js",
       "static/chunks/117-9bcfe95f89d4b2e1.js",
       "static/chunks/main-app-eabe3c3712cf23b1.js",
       "static/chunks/29-984b7c92c950b64f.js",
-      "static/chunks/448-764a0311ac16abc8.js",
-      "static/chunks/app/cases/[id]/page-dd95c3c1e4261947.js"
+      "static/chunks/app/calendar/page-7a6edef1c7a56d35.js"
     ],
     "/cases/page": [
       "static/chunks/webpack-1a9f5f0b6ec9894f.js",
@@ -35,14 +34,13 @@
       "static/chunks/448-764a0311ac16abc8.js",
       "static/chunks/app/cases/page-63b1f55ddff7b0a3.js"
     ],
-    "/cases/new/page": [
+    "/documents/page": [
       "static/chunks/webpack-1a9f5f0b6ec9894f.js",
       "static/chunks/fd9d1056-9f91b5e418130764.js",
       "static/chunks/117-9bcfe95f89d4b2e1.js",
       "static/chunks/main-app-eabe3c3712cf23b1.js",
       "static/chunks/29-984b7c92c950b64f.js",
-      "static/chunks/448-764a0311ac16abc8.js",
-      "static/chunks/app/cases/new/page-1fcc6e71faca75d4.js"
+      "static/chunks/app/documents/page-c56dce37bde600b7.js"
     ],
     "/debtors/[id]/page": [
       "static/chunks/webpack-1a9f5f0b6ec9894f.js",
@@ -53,21 +51,23 @@
       "static/chunks/448-764a0311ac16abc8.js",
       "static/chunks/app/debtors/[id]/page-0a1d25bb84ab621c.js"
     ],
-    "/page": [
+    "/cases/new/page": [
       "static/chunks/webpack-1a9f5f0b6ec9894f.js",
       "static/chunks/fd9d1056-9f91b5e418130764.js",
       "static/chunks/117-9bcfe95f89d4b2e1.js",
       "static/chunks/main-app-eabe3c3712cf23b1.js",
       "static/chunks/29-984b7c92c950b64f.js",
-      "static/chunks/app/page-173686865a7b3a40.js"
+      "static/chunks/448-764a0311ac16abc8.js",
+      "static/chunks/app/cases/new/page-1fcc6e71faca75d4.js"
     ],
-    "/calendar/page": [
+    "/cases/[id]/page": [
       "static/chunks/webpack-1a9f5f0b6ec9894f.js",
       "static/chunks/fd9d1056-9f91b5e418130764.js",
       "static/chunks/117-9bcfe95f89d4b2e1.js",
       "static/chunks/main-app-eabe3c3712cf23b1.js",
       "static/chunks/29-984b7c92c950b64f.js",
-      "static/chunks/app/calendar/page-7a6edef1c7a56d35.js"
+      "static/chunks/448-764a0311ac16abc8.js",
+      "static/chunks/app/cases/[id]/page-dd95c3c1e4261947.js"
     ],
     "/debtors/page": [
       "static/chunks/webpack-1a9f5f0b6ec9894f.js",
@@ -77,6 +77,14 @@
       "static/chunks/29-984b7c92c950b64f.js",
       "static/chunks/448-764a0311ac16abc8.js",
       "static/chunks/app/debtors/page-69de0677dd900d0b.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-1a9f5f0b6ec9894f.js",
+      "static/chunks/fd9d1056-9f91b5e418130764.js",
+      "static/chunks/117-9bcfe95f89d4b2e1.js",
+      "static/chunks/main-app-eabe3c3712cf23b1.js",
+      "static/chunks/29-984b7c92c950b64f.js",
+      "static/chunks/app/page-173686865a7b3a40.js"
     ],
     "/settings/page": [
       "static/chunks/webpack-1a9f5f0b6ec9894f.js",
